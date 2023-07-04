@@ -2,34 +2,42 @@ import cv2
 import numpy as np
  
 
-file_path = './pencil.mp4'
-capture = cv2.VideoCapture(file_path)
+def open_file(file_path):
+  capture = cv2.VideoCapture(file_path)
+  if (capture.isOpened()== False): 
+    print("Error opening video stream or file")
+  else: show_frame(capture)
  
-if (capture.isOpened()== False): 
-  print("Error opening video stream or file")
- 
 
-while(capture.isOpened()):
+def show_frame(capture):
+  while(capture.isOpened()):
+    ret, frame = capture.read()
+    
+    if ret == True:
+      resized_frame = cv2.resize(frame, (1000, 600))
 
-  ret, frame = capture.read()
-  if ret == True:
+      blur_frame=cv2.medianBlur(resized_frame, 15)
+      thresh_frame = cv2.inRange(blur_frame, (100, 50, 0), (180, 180 , 100))
 
-    resized_frame = cv2.resize(frame, (1000, 600))
+      lines=cv2.HoughLinesP(thresh_frame, 2, np.pi/180, 175, None, 55, 15)
 
-    blur_frame=cv2.medianBlur(resized_frame,11)
-    thresh = cv2.inRange(blur_frame, (65, 0, 0), (180, 200 , 80))
+      try:
+        for line in lines:
+            line = line[0]
+            cv2.line(resized_frame, (line[0],line[1]),(line[2],line[3]),(0,0,255),3)  
+      except: print('Lines not found')
 
-    LSD = cv2.createLineSegmentDetector(0)
-    lines = LSD.detect(thresh)[0]
-    drawn_img = LSD.drawSegments(resized_frame, lines)
+      cv2.imshow('Original frame', resized_frame)
+      cv2.imshow('Thresh frame', thresh_frame)
 
-    cv2.imshow('Original', resized_frame)
-    cv2.imshow('Tresh', thresh)
+      if cv2.waitKey(33) & 0xFF == ord('q'): 
+          cv2.destroyAllWindows()
+          break
+      
+    else:
+      cv2.destroyAllWindows()
+      break
 
-    if cv2.waitKey(33) & 0xFF == ord('q'): 
-        break 
-  else: 
-    break
 
-capture.release()
-cv2.destroyAllWindows()
+if __name__=='__main__':
+  open_file('./pencil.mp4')
