@@ -46,11 +46,12 @@ class Default_image(Image):
 
     def update(self, dt):
         if not pause:
-            ret, frame = Video_file(file_path).capture.read()
+            ret, frame = open_file(file_path).read()
             if ret:
-                buf1 = cv2.flip(frame, 0)
+                processed_frame , treshold_frame = video_processing(frame)
+                buf1 = cv2.flip(processed_frame, 0)
                 buf = buf1.tobytes()
-                image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+                image_texture = Texture.create(size=(processed_frame.shape[1], processed_frame.shape[0]), colorfmt='bgr')
                 image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
                 self.texture = image_texture
 
@@ -62,15 +63,17 @@ class Processed_image(Image):
     
     def update(self, dt):
         if not pause:
-            ret, frame = Video_file(file_path).capture.read()
+            ret, frame = open_file(file_path).read()
+            print(1)
             if ret:
-                buf1 = cv2.flip(frame, 0)
+                processed_frame , treshold_frame = video_processing(frame)
+                buf1 = cv2.flip(treshold_frame, 0)
                 buf = buf1.tobytes()
-                image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+                image_texture = Texture.create(size=(treshold_frame.shape[1], treshold_frame.shape[0]), colorfmt='bgr')
                 image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
                 self.texture = image_texture
             else:
-                Video_file(file_path).capture = cv2.VideoCapture(Video_file(file_path).file_path)
+                ret, frame = open_file(file_path).read()
 
 
 class Pencil_segment_detector(MDApp):

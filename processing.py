@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
  
-class Video_file():
-    def __init__(self, file_path):
-      self.capture = cv2.VideoCapture(file_path)
+def open_file(file_path):
+  capture = cv2.VideoCapture(file_path)
+  return capture
  
 
 def video_processing(frame):
@@ -19,3 +19,5 @@ def video_processing(frame):
           line = line[0]
           cv2.line(resized_frame, (line[0],line[1]), (line[2],line[3]), (0,0,255), 3)  
     except: pass
+
+    return resized_frame, thresh_frame
