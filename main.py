@@ -64,7 +64,7 @@ class Processed_image(Image):
     def update(self, dt):
         if not pause:
             ret, frame = open_file(file_path).read()
-            print(1)
+            print('ok')
             if ret:
                 processed_frame , treshold_frame = video_processing(frame)
                 buf1 = cv2.flip(treshold_frame, 0)
