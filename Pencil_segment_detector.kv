@@ -1,0 +1,61 @@
+<Main_Screen>:
+    BoxLayout:
+        orientation:'vertical'
+        BoxLayout:
+            orientation:'horizontal'
+            size_hint_y: 0.9
+            BoxLayout:
+                orientation:'vertical'
+                padding: 1
+                MDLabel:
+                    text:'default'
+                    font_size:50
+                    size_hint:1,.1
+                    halign:'center'
+                Default_image:
+            BoxLayout:
+                orientation:'vertical'
+                padding:1
+                MDLabel:
+                    text:'processed'
+                    font_size:50
+                    size_hint:1,.1
+                    halign:'center'
+                Processed_image:               
+
+        BoxLayout:
+            orientation:'horizontal'
+            size_hint_y: 0.1
+            MDLabel:
+                id: file_path_label
+                font_size : '20pt'
+                text : 'file_name'
+                hilign:'center'
+                markup: True
+                size_hint: .13, 1
+
+        BoxLayout:
+            orientation:'horizontal'
+            size_hint_y: 0.1
+            MDFillRoundFlatIconButton:
+                icon:'arrow-right-drop-circle'
+                id: start_btn
+                text: 'Start'
+                padding: 10
+                size_hint_x:0.2
+                on_release: root.start()
+            MDFillRoundFlatIconButton:
+                icon:'pause-circle'
+                id: pause_btn
+                text: 'Pause'
+                padding: 10
+                size_hint_x:0.2
+                on_release: root.pause_and_resum_video()
+                disabled : True
+            MDFillRoundFlatIconButton:
+                icon:'arrow-right-circle'
+                id: quit_btn
+                text: 'Quit'
+                padding: 10
+                size_hint_x:0.2
+                on_release: root.quit()

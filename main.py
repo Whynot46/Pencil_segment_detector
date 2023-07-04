@@ -1,42 +1,88 @@
-import cv2
-import numpy as np
- 
-
-def open_file(file_path):
-  capture = cv2.VideoCapture(file_path)
-  if (capture.isOpened()== False): 
-    print("Error opening video stream or file")
-  else: show_frame(capture)
- 
-
-def show_frame(capture):
-  while(capture.isOpened()):
-    ret, frame = capture.read()
-    if ret == True:
-      resized_frame = cv2.resize(frame, (1000, 600))
-      blur_frame=cv2.medianBlur(resized_frame, 15)
-      thresh_frame = cv2.inRange(blur_frame, (100, 50, 0), (180, 180 , 100))
-
-      #cv2.HoughLinesP(image, rho, theta, threshold, lines, minLineLength, maxLineGap) 
-      lines=cv2.HoughLinesP(thresh_frame, 2, np.pi/180, 175, None, 10, 20)
-
-      try:
-        for line in lines:
-            line = line[0]
-            cv2.line(resized_frame, (line[0],line[1]), (line[2],line[3]), (0,0,255), 3)  
-      except: pass
-
-      cv2.imshow('Original frame', resized_frame)
-      cv2.imshow('Thresh frame', thresh_frame)
-
-      if cv2.waitKey(33) & 0xFF == ord('q'): 
-          cv2.destroyAllWindows()
-          break
-      
-    else:
-      cv2.destroyAllWindows()
-      break
+from processing import *
+from kivymd.app import MDApp
+from kivy.clock import Clock
+from kivy.uix.image import Image
+from kivy.core.window import Window
+from kivy.graphics.texture import Texture
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.core.window import Window
 
 
-if __name__=='__main__':
-  open_file('./pencil.mp4')
+FPS = 10
+pause = True
+file_path = './pencil.mp4'
+Window.maximize()           
+
+
+class Main_Screen(Screen):
+    def start(self):
+        global pause
+        pause = False
+        self.ids.start_btn.disabled = True
+        self.ids.start_btn.text = "Resume"
+        self.ids.file_path_label.text = file_path
+        self.ids.pause_btn.disabled = False
+
+    def pause_and_resum_video(self):
+        global pause
+        if pause:
+            pause = False
+            self.ids.start_btn.disabled = True
+            self.ids.pause_btn.disabled = False
+        else:
+            pause = True
+            self.ids.start_btn.disabled = False
+            self.ids.pause_btn.disabled = True
+
+    def quit(self):
+        Pencil_segment_detector.get_running_app().stop()
+        Window.close()
+
+
+class Default_image(Image):
+    def __init__(self, capture=None, fps=FPS, **kwargs):
+        super(Default_image, self).__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1.0 / fps)
+
+    def update(self, dt):
+        if not pause:
+            ret, frame = Video_file(file_path).capture.read()
+            if ret:
+                buf1 = cv2.flip(frame, 0)
+                buf = buf1.tobytes()
+                image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+                image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+                self.texture = image_texture
+
+
+class Processed_image(Image):
+    def __init__(self, capture=None, fps=FPS, **kwargs):
+        super(Processed_image, self).__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1.0 / fps)
+    
+    def update(self, dt):
+        if not pause:
+            ret, frame = Video_file(file_path).capture.read()
+            if ret:
+                buf1 = cv2.flip(frame, 0)
+                buf = buf1.tobytes()
+                image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+                image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+                self.texture = image_texture
+            else:
+                Video_file(file_path).capture = cv2.VideoCapture(Video_file(file_path).file_path)
+
+
+class Pencil_segment_detector(MDApp):
+    def build(self):
+        global SM
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Red"
+        self.load_kv('Pencil_segment_detector.kv')
+        SM = ScreenManager()
+        SM.add_widget(Main_Screen(name='Main_Screen'))
+        return SM
+
+
+if __name__ == '__main__':
+    Pencil_segment_detector().run()
